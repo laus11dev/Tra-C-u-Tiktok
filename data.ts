@@ -3,9 +3,9 @@ import type { TiktokShopeeMap } from './types';
 
 // This data serves as the initial state.
 export const initialLinkDatabase: TiktokShopeeMap[] = [
-  { tiktokLink: 'https://vt.tiktok.com/ZSfR1t4YM/', shopeeCode: 'CHL-EHH-MAZ', shopeeLink: 'https://s.shopee.vn/6fZYfSAMDp' },
-  { tiktokLink: 'https://vt.tiktok.com/ZSfRJCf2c/', shopeeCode: 'CDG-CHX-SLD', shopeeLink: 'https://s.shopee.vn/9zq0db6L2r' },
-  { tiktokLink: 'https://vt.tiktok.com/ZSfRJVE1h/', shopeeCode: 'BMJ-KCS-BKQ', shopeeLink: 'https://s.shopee.vn/8KhmeYtaZF' },
+  { tiktokLink: 'https://vt.tiktok.com/ZSfReG9Re/', shopeeCode: 'CHL-EHH-MAZ', shopeeLink: 'https://s.shopee.vn/6fZYfSAMDp' },
+  { tiktokLink: 'https://vt.tiktok.com/ZSfRddSQX/', shopeeCode: 'CDG-CHX-SLD', shopeeLink: 'https://s.shopee.vn/9zq0db6L2r' },
+  { tiktokLink: 'https://vt.tiktok.com/ZSfRd5ese/', shopeeCode: 'BMJ-KCS-BKQ', shopeeLink: 'https://s.shopee.vn/8KhmeYtaZF' },
   { tiktokLink: 'https://vt.tiktok.com/ZSfRJuQps/', shopeeCode: 'CKV-UMW-RSW', shopeeLink: 'https://s.shopee.vn/9Utk2ixxJ5' },
   { tiktokLink: 'https://vt.tiktok.com/ZSfRJD1kE/', shopeeCode: 'CKV-UMW-RSW', shopeeLink: 'https://s.shopee.vn/9Utk2ixxJ5' },
   { tiktokLink: 'https://vt.tiktok.com/ZSfRJVWCs/', shopeeCode: 'AGS-CHD-JDZ', shopeeLink: 'https://s.shopee.vn/804wG06qSe' },
