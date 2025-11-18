@@ -33,7 +33,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
                 <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400 flex items-center">
                         <ShopeeIcon className="w-5 h-5 mr-2" />
-                        Mã giảm giá
+                        Mã Sản Phẩm
                     </label>
                     <div className="flex items-center">
                         <p className="flex-grow p-3 bg-gray-700 rounded-l-md border border-r-0 border-gray-600 font-mono select-all">
@@ -47,6 +47,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
                            {copied ? 'Đã chép!' : <CopyIcon className="w-5 h-5" />}
                         </button>
                     </div>
+                    <i>Nàng Xinh copy mã này vào Shopee hoặc ấn vào link ở dưới để ra sản phẩm nhé</i>
                 </div>
                 <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400 flex items-center">
