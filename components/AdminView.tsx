@@ -64,6 +64,7 @@ const AdminView: React.FC<AdminViewProps> = ({
               <thead className="bg-gray-700 text-gray-300 uppercase text-sm leading-normal">
                 <tr>
                   <th className="py-3 px-6 text-left">TikTok Link</th>
+                  <th className="py-3 px-6 text-left">TikTok ID</th>
                   <th className="py-3 px-6 text-left">Shopee Code</th>
                   <th className="py-3 px-6 text-left">Shopee Link</th>
                   <th className="py-3 px-6 text-center">Actions</th>
@@ -74,6 +75,9 @@ const AdminView: React.FC<AdminViewProps> = ({
                   <tr key={index} className="border-b border-gray-700 hover:bg-gray-700">
                     <td className="py-3 px-6 text-left whitespace-nowrap">
                         <a href={product.tiktokLink} target="_blank" rel="noopener noreferrer" className="hover:text-tiktok-blue break-all">{product.tiktokLink}</a>
+                    </td>
+                     <td className="py-3 px-6 text-left font-mono">
+                      {product.tiktokId}
                     </td>
                     <td className="py-3 px-6 text-left font-mono">
                       {product.shopeeCode}

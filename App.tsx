@@ -13,11 +13,20 @@ import { initialLinkDatabase } from './data';
 const PASSWORD_KEY = 'admin_password_hash';
 const DEFAULT_PASSWORD = 'Vinh3141$$';
 
+// Moved outside the component to ensure it's a stable function.
+const extractTiktokId = (url: string): string | null => {
+  // Matches video IDs in URLs like:
+  // - https://www.tiktok.com/@username/video/7374653584732048648
+  // - https://www.tiktok.com/@username/photo/7374653584732048648
+  // - Or just the ID itself
+  const regex = /(?:video|photo)\/(\d+)|^\d{19,}$/;
+  const match = url.match(regex);
+  return match ? match[1] || match[0] : null;
+};
+
 const App: React.FC = () => {
-  // State is now initialized directly from the imported data file.
-  // No more localStorage for products.
   const [products, setProducts] = useState<TiktokShopeeMap[]>(initialLinkDatabase);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState<'' | 'resolving' | 'searching'>('');
   const [searchResult, setSearchResult] = useState<SearchResult>(null);
   const [appError, setAppError] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -27,8 +36,6 @@ const App: React.FC = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false); // State for the new export modal
   const [editingProductIndex, setEditingProductIndex] = useState<number | null>(null);
-
-  // Removed useEffect for saving products to localStorage.
 
   const hashPassword = async (password: string): Promise<string> => {
     const encoder = new TextEncoder();
@@ -48,49 +55,86 @@ const App: React.FC = () => {
     initPassword();
   }, [hashPassword]);
 
-  const handleSearch = useCallback((link: string) => {
+  const handleSearch = useCallback(async (link: string) => {
     if (link === 'admin@gocnhonhamunn') {
-      setShowPasswordModal(true);
-      return;
-    }
-
-    setIsLoading(true);
-    setSearchResult(null);
-    setAppError(null);
-
-    const getPathname = (urlString: string): string | null => {
-        try {
-            const fullUrl = urlString.startsWith('http') ? urlString : `https://${urlString}`;
-            const url = new URL(fullUrl);
-            return url.pathname.replace(/\/$/, '');
-        } catch (e) {
-            console.error("Invalid URL:", e);
-            return null;
-        }
-    };
-
-    const inputPath = getPathname(link);
-    
-    if (!inputPath) {
-        setAppError("Link TikTok không hợp lệ. Vui lòng kiểm tra lại.");
-        setIsLoading(false);
+        setShowPasswordModal(true);
         return;
     }
 
-    setTimeout(() => {
-      const found = products.find(item => {
-          const itemPath = getPathname(item.tiktokLink);
-          return itemPath === inputPath;
-      });
+    setSearchResult(null);
+    setAppError(null);
 
-      if (found) {
-        setSearchResult(found);
-      } else {
+    let videoIdToSearch: string | null = null;
+
+    // ----------------------------------------
+    // CASE 1: LINK RÚT GỌN vt.tiktok.com
+    // ----------------------------------------
+    if (link.includes("vt.tiktok.com")) {
+        setLoadingState("resolving");
+
+        try {
+            const params = new URLSearchParams({ url: link });
+
+            const response = await fetch(
+                `http://localhost:3001/resolve-tiktok?${params.toString()}`
+            );
+
+            const raw = await response.text();
+
+            if (!response.ok) {
+                throw new Error(raw || `Server error ${response.status}`);
+            }
+
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch {
+                throw new Error("Backend trả dữ liệu không phải JSON:\n" + raw);
+            }
+
+            if (!data.id) {
+                throw new Error("Không tìm thấy ID video.");
+            }
+
+            videoIdToSearch = data.id;
+
+        } catch (error: any) {
+            console.error("Failed to resolve TikTok link:", error);
+            setAppError(`Lỗi khi xử lý link rút gọn: ${error.message}`);
+            setLoadingState("");
+            return;
+        }
+    }
+
+    // ----------------------------------------
+    // CASE 2: LINK ĐẦY ĐỦ / HOẶC ID TỰ NHẬP
+    // ----------------------------------------
+    else {
+        videoIdToSearch = extractTiktokId(link);
+    }
+
+    // ----------------------------------------
+    // SEARCH PRODUCT MATCHING ID
+    // ----------------------------------------
+    setLoadingState("searching");
+
+    if (!videoIdToSearch) {
         setSearchResult({ notFound: true });
-      }
-      setIsLoading(false);
-    }, 500);
-  }, [products]);
+        setLoadingState("");
+        return;
+    }
+
+    const found = products.find(p => p.tiktokId === videoIdToSearch);
+
+    if (found) {
+        setSearchResult(found);
+    } else {
+        setSearchResult({ notFound: true });
+    }
+
+    setLoadingState("");
+}, [products]);
+
 
   const handlePasswordSubmit = async (password: string) => {
     const storedHash = localStorage.getItem(PASSWORD_KEY);
@@ -103,13 +147,13 @@ const App: React.FC = () => {
       alert('Mật khẩu không đúng!');
     }
   };
-  
+
   const handleChangePassword = async (oldPass: string, newPass: string): Promise<boolean> => {
     const storedHash = localStorage.getItem(PASSWORD_KEY);
     const oldPassHash = await hashPassword(oldPass);
     if (oldPassHash !== storedHash) {
-        alert('Mật khẩu cũ không đúng!');
-        return false;
+      alert('Mật khẩu cũ không đúng!');
+      return false;
     }
     const newPassHash = await hashPassword(newPass);
     localStorage.setItem(PASSWORD_KEY, newPassHash);
@@ -119,16 +163,21 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-      setIsAdmin(false);
+    setIsAdmin(false);
   }
 
   const handleSaveProduct = (product: TiktokShopeeMap) => {
+    const productWithId = {
+      ...product,
+      tiktokId: extractTiktokId(product.tiktokLink) || '',
+    };
+
     if (editingProductIndex !== null) {
       // Edit
-      setProducts(prev => prev.map((p, i) => i === editingProductIndex ? product : p));
+      setProducts(prev => prev.map((p, i) => i === editingProductIndex ? productWithId : p));
     } else {
       // Add
-      setProducts(prev => [...prev, product]);
+      setProducts(prev => [...prev, productWithId]);
     }
     setShowProductModal(false);
     setEditingProductIndex(null);
@@ -136,54 +185,54 @@ const App: React.FC = () => {
 
   const handleDeleteProduct = (index: number) => {
     if (window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
-        setProducts(prev => prev.filter((_, i) => i !== index));
+      setProducts(prev => prev.filter((_, i) => i !== index));
     }
   };
 
   if (isAdmin) {
     return (
-        <>
-            <AdminView 
-                products={products} 
-                onLogout={handleLogout} 
-                onAddProductClick={() => { setEditingProductIndex(null); setShowProductModal(true); }}
-                onEditProductClick={(index) => { setEditingProductIndex(index); setShowProductModal(true); }}
-                onDeleteProductClick={handleDeleteProduct}
-                onChangePasswordClick={() => setShowChangePasswordModal(true)}
-                onExportClick={() => setShowExportModal(true)} // Pass handler for export button
-            />
-            {showProductModal && (
-                <ProductModal 
-                    onClose={() => { setShowProductModal(false); setEditingProductIndex(null); }}
-                    onSave={handleSaveProduct}
-                    productToEdit={editingProductIndex !== null ? products[editingProductIndex] : null}
-                />
-            )}
-            {showChangePasswordModal && (
-                <ChangePasswordModal
-                    onClose={() => setShowChangePasswordModal(false)}
-                    onSubmit={handleChangePassword}
-                />
-            )}
-            {showExportModal && ( // Render the new export modal
-                <ExportModal
-                    products={products}
-                    onClose={() => setShowExportModal(false)}
-                />
-            )}
-        </>
+      <>
+        <AdminView
+          products={products}
+          onLogout={handleLogout}
+          onAddProductClick={() => { setEditingProductIndex(null); setShowProductModal(true); }}
+          onEditProductClick={(index) => { setEditingProductIndex(index); setShowProductModal(true); }}
+          onDeleteProductClick={handleDeleteProduct}
+          onChangePasswordClick={() => setShowChangePasswordModal(true)}
+          onExportClick={() => setShowExportModal(true)} // Pass handler for export button
+        />
+        {showProductModal && (
+          <ProductModal
+            onClose={() => { setShowProductModal(false); setEditingProductIndex(null); }}
+            onSave={handleSaveProduct}
+            productToEdit={editingProductIndex !== null ? products[editingProductIndex] : null}
+          />
+        )}
+        {showChangePasswordModal && (
+          <ChangePasswordModal
+            onClose={() => setShowChangePasswordModal(false)}
+            onSubmit={handleChangePassword}
+          />
+        )}
+        {showExportModal && ( // Render the new export modal
+          <ExportModal
+            products={products}
+            onClose={() => setShowExportModal(false)}
+          />
+        )}
+      </>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
       {showPasswordModal && (
-        <PasswordModal 
-          onSubmit={handlePasswordSubmit} 
+        <PasswordModal
+          onSubmit={handlePasswordSubmit}
           onClose={() => {
             setShowPasswordModal(false);
             setInputValue('');
-          }} 
+          }}
         />
       )}
       <header className="text-center mb-8">
@@ -202,22 +251,22 @@ const App: React.FC = () => {
             <span className="block sm:inline">{appError}</span>
           </div>
         )}
-        
-        <LinkInput 
-            onSearch={handleSearch} 
-            isLoading={isLoading} 
-            inputValue={inputValue}
-            setInputValue={setInputValue}
+
+        <LinkInput
+          onSearch={handleSearch}
+          loadingState={loadingState}
+          inputValue={inputValue}
+          setInputValue={setInputValue}
         />
         <ResultDisplay result={searchResult} />
-        
+
         <div className="w-full max-w-lg mt-8 p-6 bg-gray-800 border border-gray-700 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4 text-center text-gray-300">Hướng dẫn lấy link</h3>
-            <ol className="space-y-2 text-gray-400 text-left max-w-sm mx-auto">
-                <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">1.</span><span>Trên video TikTok, nhấn vào nút <span className="font-semibold text-white">"Share"</span> (Chia sẻ).</span></li>
-                <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">2.</span><span>Chọn <span className="font-semibold text-white">"Sao chép liên kết"</span> từ các tùy chọn.</span></li>
-                <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">3.</span><span>Dán link vào ô bên trên và nhấn <span className="font-semibold text-white">"Lấy Link & Code"</span>.</span></li>
-            </ol>
+          <h3 className="text-lg font-semibold mb-4 text-center text-gray-300">Hướng dẫn lấy link</h3>
+          <ol className="space-y-2 text-gray-400 text-left max-w-sm mx-auto">
+            <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">1.</span><span>Trên video TikTok, nhấn vào nút <span className="font-semibold text-white">"Share"</span> (Chia sẻ).</span></li>
+            <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">2.</span><span>Chọn <span className="font-semibold text-white">"Sao chép liên kết"</span> từ các tùy chọn.</span></li>
+            <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">3.</span><span>Dán link vào ô bên trên và nhấn <span className="font-semibold text-white">"Lấy Link & Code"</span>.</span></li>
+          </ol>
         </div>
       </main>
     </div>

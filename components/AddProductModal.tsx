@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { TiktokShopeeMap } from '../types';
 
 interface ProductModalProps {
@@ -11,15 +11,20 @@ interface ProductModalProps {
 const ProductModal: React.FC<ProductModalProps> = ({ onClose, onSave, productToEdit }) => {
   const [formData, setFormData] = useState<TiktokShopeeMap>({
     tiktokLink: '',
+    tiktokId: '', // Initialize with empty ID
     shopeeCode: '',
     shopeeLink: '',
   });
+
+  const isShortLink = useMemo(() => {
+    return formData.tiktokLink.includes('vt.tiktok.com');
+  }, [formData.tiktokLink]);
 
   useEffect(() => {
     if (productToEdit) {
       setFormData(productToEdit);
     } else {
-      setFormData({ tiktokLink: '', shopeeCode: '', shopeeLink: '' });
+      setFormData({ tiktokLink: '', tiktokId: '', shopeeCode: '', shopeeLink: '' });
     }
   }, [productToEdit]);
 
@@ -55,9 +60,22 @@ const ProductModal: React.FC<ProductModalProps> = ({ onClose, onSave, productToE
               value={formData.tiktokLink}
               onChange={handleChange}
               className="block w-full p-3 text-sm text-white border border-gray-600 rounded-lg bg-gray-700 focus:ring-tiktok-blue focus:border-tiktok-blue"
-              placeholder="https://www.tiktok.com/..."
+              placeholder="https://www.tiktok.com/... hoặc https://vt.tiktok.com/..."
               required
             />
+            {isShortLink ? (
+               <div className="mt-3 p-3 bg-yellow-900/50 border border-yellow-700 text-yellow-300 rounded-lg text-sm transition-all duration-300 ease-in-out">
+                <strong className="font-semibold">⚠️ Cảnh báo link rút gọn!</strong>
+                <p className="mt-1">Để đảm bảo tìm kiếm chính xác nhất, bạn <strong className="text-yellow-200">phải</strong> dùng link đầy đủ. Vui lòng:</p>
+                <ol className="list-decimal list-inside mt-2 space-y-1">
+                  <li>Mở link rút gọn trong một tab trình duyệt mới.</li>
+                  <li>Sao chép link <strong className="text-yellow-200">đầy đủ</strong> từ thanh địa chỉ (sẽ có dạng <code className="bg-gray-700 text-tiktok-blue px-1 rounded text-xs">.../video/ID_VIDEO</code>).</li>
+                  <li>Dán link đầy đủ đó vào ô bên trên.</li>
+                </ol>
+              </div>
+            ) : (
+                <p className="text-xs text-gray-500 mt-1">Ưu tiên dán link đầy đủ (có /video/...) để tìm kiếm chính xác hơn.</p>
+            )}
           </div>
           <div>
             <label htmlFor="shopeeCode" className="block mb-2 text-sm font-medium text-gray-400">Shopee Code</label>

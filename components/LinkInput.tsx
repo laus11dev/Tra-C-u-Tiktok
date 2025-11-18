@@ -1,14 +1,15 @@
+
 import React from 'react';
 import { TiktokIcon } from './Icons';
 
 interface LinkInputProps {
   onSearch: (link: string) => void;
-  isLoading: boolean;
+  loadingState: '' | 'resolving' | 'searching';
   inputValue: string;
   setInputValue: (value: string) => void;
 }
 
-const LinkInput: React.FC<LinkInputProps> = ({ onSearch, isLoading, inputValue, setInputValue }) => {
+const LinkInput: React.FC<LinkInputProps> = ({ onSearch, loadingState, inputValue, setInputValue }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,6 +17,14 @@ const LinkInput: React.FC<LinkInputProps> = ({ onSearch, isLoading, inputValue, 
       onSearch(inputValue.trim());
     }
   };
+
+  const getButtonText = () => {
+    switch(loadingState) {
+        case 'resolving': return 'Đang xử lý link...';
+        case 'searching': return 'Đang tìm...';
+        default: return 'Lấy Link & Code';
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-lg mt-8">
@@ -32,15 +41,15 @@ const LinkInput: React.FC<LinkInputProps> = ({ onSearch, isLoading, inputValue, 
     className="block w-full p-4 pl-[50px] pr-44 text-sm text-white border border-gray-600 rounded-lg bg-gray-700 focus:ring-tiktok-blue focus:border-tiktok-blue placeholder-gray-400"
     placeholder="Dán link TikTok ở đây nha.."
     required
-    disabled={isLoading}
+    disabled={!!loadingState}
 />
         <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
             <button
               type="submit"
-              disabled={isLoading || !inputValue}
+              disabled={!!loadingState || !inputValue}
               className="text-white bg-gradient-to-r from-tiktok-pink to-tiktok-blue hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-800 font-medium rounded-lg text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             >
-              {isLoading ? 'Đang tìm...' : 'Lấy Link & Code'}
+              {getButtonText()}
             </button>
         </div>
       </div>

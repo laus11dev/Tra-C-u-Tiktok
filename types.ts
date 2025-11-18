@@ -1,6 +1,7 @@
 
 export interface TiktokShopeeMap {
   tiktokLink: string;
+  tiktokId: string;
   shopeeCode: string;
   shopeeLink: string;
 }

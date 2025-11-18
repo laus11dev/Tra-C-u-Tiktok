@@ -11,7 +11,14 @@ const ExportModal: React.FC<ExportModalProps> = ({ products, onClose }) => {
   const [copied, setCopied] = useState(false);
 
   const formattedData = useMemo(() => {
-    const dataString = JSON.stringify(products, null, 2);
+    // Recreate the array with specific field order for better readability
+    const orderedProducts = products.map(p => ({
+        tiktokLink: p.tiktokLink,
+        tiktokId: p.tiktokId,
+        shopeeCode: p.shopeeCode,
+        shopeeLink: p.shopeeLink,
+    }));
+    const dataString = JSON.stringify(orderedProducts, null, 2);
     return `import type { TiktokShopeeMap } from './types';\n\nexport const initialLinkDatabase: TiktokShopeeMap[] = ${dataString};`;
   }, [products]);
 
