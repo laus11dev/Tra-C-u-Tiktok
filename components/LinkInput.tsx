@@ -1,15 +1,14 @@
-
 import React from 'react';
 import { TiktokIcon } from './Icons';
 
 interface LinkInputProps {
   onSearch: (link: string) => void;
-  loadingState: '' | 'resolving' | 'searching';
+  isLoading: boolean;
   inputValue: string;
   setInputValue: (value: string) => void;
 }
 
-const LinkInput: React.FC<LinkInputProps> = ({ onSearch, loadingState, inputValue, setInputValue }) => {
+const LinkInput: React.FC<LinkInputProps> = ({ onSearch, isLoading, inputValue, setInputValue }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,14 +16,6 @@ const LinkInput: React.FC<LinkInputProps> = ({ onSearch, loadingState, inputValu
       onSearch(inputValue.trim());
     }
   };
-
-  const getButtonText = () => {
-    switch(loadingState) {
-        case 'resolving': return 'Đang xử lý link...';
-        case 'searching': return 'Đang tìm...';
-        default: return 'Lấy Link & Code';
-    }
-  }
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-lg mt-8">
@@ -41,15 +32,15 @@ const LinkInput: React.FC<LinkInputProps> = ({ onSearch, loadingState, inputValu
     className="block w-full p-4 pl-[50px] pr-44 text-sm text-white border border-gray-600 rounded-lg bg-gray-700 focus:ring-tiktok-blue focus:border-tiktok-blue placeholder-gray-400"
     placeholder="Dán link TikTok ở đây nha.."
     required
-    disabled={!!loadingState}
+    disabled={isLoading}
 />
         <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
             <button
               type="submit"
-              disabled={!!loadingState || !inputValue}
+              disabled={isLoading || !inputValue}
               className="text-white bg-gradient-to-r from-tiktok-pink to-tiktok-blue hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-800 font-medium rounded-lg text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             >
-              {getButtonText()}
+              {isLoading ? 'Đang tìm...' : 'Lấy Link & Code'}
             </button>
         </div>
       </div>
