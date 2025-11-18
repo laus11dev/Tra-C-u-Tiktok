@@ -1,50 +1,71 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import LinkInput from './components/LinkInput';
 import ResultDisplay from './components/ResultDisplay';
+import PasswordModal from './components/PasswordModal';
+import AdminView from './components/AdminView';
+import ProductModal from './components/AddProductModal';
+import ChangePasswordModal from './components/ChangePasswordModal';
+import ExportModal from './components/ExportModal'; // Import the new component
 import type { TiktokShopeeMap, SearchResult } from './types';
+import { initialLinkDatabase } from './data';
 
-// Hardcoded database updated with the provided CSV data
-const linkDatabase: TiktokShopeeMap[] = [
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/photo/7571313097198030087', shopeeCode: 'CHL-EHH-MAZ', shopeeLink: 'https://s.shopee.vn/6fZYfSAMDp' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/photo/7571522585914068232', shopeeCode: 'CDG-CHX-SLD', shopeeLink: 'https://s.shopee.vn/9zq0db6L2r' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/photo/7571649853671935250', shopeeCode: 'BMJ-KCS-BKQ', shopeeLink: 'https://s.shopee.vn/8KhmeYtaZF' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/photo/7571657235667979527', shopeeCode: 'CKV-UMW-RSW', shopeeLink: 'https://s.shopee.vn/9Utk2ixxJ5' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7571660165624352008', shopeeCode: 'CKV-UMW-RSW', shopeeLink: 'https://s.shopee.vn/9Utk2ixxJ5' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7571662555018464519', shopeeCode: 'AGS-CHD-JDZ', shopeeLink: 'https://s.shopee.vn/804wG06qSe' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7571738425615797525', shopeeCode: 'CKV-UMW-RSW', shopeeLink: 'https://s.shopee.vn/9Utk2ixxJ5' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572231159845883143', shopeeCode: 'CMQ-GHD-GSC', shopeeLink: 'https://s.shopee.vn/30gGIqTboy' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572238598355815698', shopeeCode: 'BRZ-SVQ-AMM', shopeeLink: 'https://s.shopee.vn/7AVpGWi4Xi' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572526990385843464', shopeeCode: 'BJY-LNN-KBJ', shopeeLink: 'https://s.shopee.vn/qbliuk8Gt' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572584841229749522', shopeeCode: 'BJY-LNN-KBJ', shopeeLink: 'https://s.shopee.vn/qbliuk8Gt' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572613758082878728', shopeeCode: 'CHL-EHH-MAZ', shopeeLink: 'https://s.shopee.vn/6fZYfSAMDp' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572658530793098514', shopeeCode: 'BNT-AYR-FMS', shopeeLink: 'https://s.shopee.vn/2B79JOe6x5' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572808458001517832', shopeeCode: 'AQE-YTA-CUK', shopeeLink: 'https://s.shopee.vn/5q0Rg9Pszv' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7573389177232919815', shopeeCode: 'CCG-FGR-CUP', shopeeLink: 'https://s.shopee.vn/10vBvI3oPC' },
-  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572836732568096018', shopeeCode: 'APT-TAX-EBW', shopeeLink: 'https://s.shopee.vn/7plW3rqJnJ' },
-];
-
+const PASSWORD_KEY = 'admin_password_hash';
+const DEFAULT_PASSWORD = 'Vinh3141$$';
 
 const App: React.FC = () => {
+  // State is now initialized directly from the imported data file.
+  // No more localStorage for products.
+  const [products, setProducts] = useState<TiktokShopeeMap[]>(initialLinkDatabase);
   const [isLoading, setIsLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<SearchResult>(null);
   const [appError, setAppError] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false); // State for the new export modal
+  const [editingProductIndex, setEditingProductIndex] = useState<number | null>(null);
+
+  // Removed useEffect for saving products to localStorage.
+
+  const hashPassword = async (password: string): Promise<string> => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  useEffect(() => {
+    const initPassword = async () => {
+      if (!localStorage.getItem(PASSWORD_KEY)) {
+        const defaultHash = await hashPassword(DEFAULT_PASSWORD);
+        localStorage.setItem(PASSWORD_KEY, defaultHash);
+      }
+    };
+    initPassword();
+  }, [hashPassword]);
 
   const handleSearch = useCallback((link: string) => {
+    if (link === 'admin@gocnhonhamunn') {
+      setShowPasswordModal(true);
+      return;
+    }
+
     setIsLoading(true);
     setSearchResult(null);
     setAppError(null);
 
     const getPathname = (urlString: string): string | null => {
         try {
-            // Prepend https if protocol is missing, as URL constructor needs it
             const fullUrl = urlString.startsWith('http') ? urlString : `https://${urlString}`;
             const url = new URL(fullUrl);
-            return url.pathname.replace(/\/$/, ''); // also remove any trailing slash
+            return url.pathname.replace(/\/$/, '');
         } catch (e) {
             console.error("Invalid URL:", e);
-            return null; // Invalid URL
+            return null;
         }
     };
 
@@ -56,9 +77,8 @@ const App: React.FC = () => {
         return;
     }
 
-    // Artificial delay for UX
     setTimeout(() => {
-      const found = linkDatabase.find(item => {
+      const found = products.find(item => {
           const itemPath = getPathname(item.tiktokLink);
           return itemPath === inputPath;
       });
@@ -70,10 +90,102 @@ const App: React.FC = () => {
       }
       setIsLoading(false);
     }, 500);
-  }, []);
+  }, [products]);
+
+  const handlePasswordSubmit = async (password: string) => {
+    const storedHash = localStorage.getItem(PASSWORD_KEY);
+    const inputHash = await hashPassword(password);
+    if (inputHash === storedHash) {
+      setIsAdmin(true);
+      setShowPasswordModal(false);
+      setInputValue('');
+    } else {
+      alert('Mật khẩu không đúng!');
+    }
+  };
+  
+  const handleChangePassword = async (oldPass: string, newPass: string): Promise<boolean> => {
+    const storedHash = localStorage.getItem(PASSWORD_KEY);
+    const oldPassHash = await hashPassword(oldPass);
+    if (oldPassHash !== storedHash) {
+        alert('Mật khẩu cũ không đúng!');
+        return false;
+    }
+    const newPassHash = await hashPassword(newPass);
+    localStorage.setItem(PASSWORD_KEY, newPassHash);
+    alert('Đổi mật khẩu thành công!');
+    setShowChangePasswordModal(false);
+    return true;
+  };
+
+  const handleLogout = () => {
+      setIsAdmin(false);
+  }
+
+  const handleSaveProduct = (product: TiktokShopeeMap) => {
+    if (editingProductIndex !== null) {
+      // Edit
+      setProducts(prev => prev.map((p, i) => i === editingProductIndex ? product : p));
+    } else {
+      // Add
+      setProducts(prev => [...prev, product]);
+    }
+    setShowProductModal(false);
+    setEditingProductIndex(null);
+  };
+
+  const handleDeleteProduct = (index: number) => {
+    if (window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
+        setProducts(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  if (isAdmin) {
+    return (
+        <>
+            <AdminView 
+                products={products} 
+                onLogout={handleLogout} 
+                onAddProductClick={() => { setEditingProductIndex(null); setShowProductModal(true); }}
+                onEditProductClick={(index) => { setEditingProductIndex(index); setShowProductModal(true); }}
+                onDeleteProductClick={handleDeleteProduct}
+                onChangePasswordClick={() => setShowChangePasswordModal(true)}
+                onExportClick={() => setShowExportModal(true)} // Pass handler for export button
+            />
+            {showProductModal && (
+                <ProductModal 
+                    onClose={() => { setShowProductModal(false); setEditingProductIndex(null); }}
+                    onSave={handleSaveProduct}
+                    productToEdit={editingProductIndex !== null ? products[editingProductIndex] : null}
+                />
+            )}
+            {showChangePasswordModal && (
+                <ChangePasswordModal
+                    onClose={() => setShowChangePasswordModal(false)}
+                    onSubmit={handleChangePassword}
+                />
+            )}
+            {showExportModal && ( // Render the new export modal
+                <ExportModal
+                    products={products}
+                    onClose={() => setShowExportModal(false)}
+                />
+            )}
+        </>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
+      {showPasswordModal && (
+        <PasswordModal 
+          onSubmit={handlePasswordSubmit} 
+          onClose={() => {
+            setShowPasswordModal(false);
+            setInputValue('');
+          }} 
+        />
+      )}
       <header className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
           Xin chào Nàng Xinh đã ghé thăm
