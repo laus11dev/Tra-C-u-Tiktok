@@ -1,0 +1,5 @@
+{
+  "name": "TikTok to Shopee Link Finder",
+  "description": "An application that allows users to upload a data file (CSV) and find corresponding Shopee affiliate links and codes by entering a TikTok URL.",
+  "requestFramePermissions": []
+}
