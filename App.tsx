@@ -3,7 +3,6 @@ import React, { useState, useCallback } from 'react';
 import LinkInput from './components/LinkInput';
 import ResultDisplay from './components/ResultDisplay';
 import type { TiktokShopeeMap, SearchResult } from './types';
-import { TiktokIcon, ShopeeIcon, LinkIcon } from './components/Icons';
 
 // Hardcoded database updated with the provided CSV data
 const linkDatabase: TiktokShopeeMap[] = [
@@ -72,11 +71,6 @@ const App: React.FC = () => {
       setIsLoading(false);
     }, 500);
   }, []);
-
-  const handleSampleLinkClick = (link: string) => {
-      setInputValue(link);
-      handleSearch(link);
-  }
   
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
@@ -106,20 +100,12 @@ const App: React.FC = () => {
         <ResultDisplay result={searchResult} />
         
         <div className="w-full max-w-lg mt-8 p-6 bg-gray-800 border border-gray-700 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4 text-center text-gray-300">Link mẫu để thử nghiệm</h3>
-            <ul className="space-y-3">
-                {linkDatabase.slice(0, 3).map((item) => (
-                    <li key={item.tiktokLink}>
-                        <button 
-                            onClick={() => handleSampleLinkClick(item.tiktokLink)}
-                            className="w-full flex items-center text-left p-3 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
-                        >
-                            <LinkIcon className="w-5 h-5 mr-3 text-tiktok-blue shrink-0"/>
-                            <span className="text-sm text-gray-300 truncate">{item.tiktokLink}</span>
-                        </button>
-                    </li>
-                ))}
-            </ul>
+            <h3 className="text-lg font-semibold mb-4 text-center text-gray-300">Hướng dẫn lấy link</h3>
+            <ol className="space-y-2 text-gray-400 text-left max-w-sm mx-auto">
+                <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">1.</span><span>Trên video TikTok, nhấn vào nút <span className="font-semibold text-white">"Share"</span> (Chia sẻ).</span></li>
+                <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">2.</span><span>Chọn <span className="font-semibold text-white">"Sao chép liên kết"</span> từ các tùy chọn.</span></li>
+                <li className="flex items-start"><span className="font-bold text-tiktok-blue mr-3">3.</span><span>Dán link vào ô bên trên và nhấn <span className="font-semibold text-white">"Lấy Link & Code"</span>.</span></li>
+            </ol>
         </div>
       </main>
     </div>
