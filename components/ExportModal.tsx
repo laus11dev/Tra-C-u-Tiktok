@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import type { TiktokShopeeMap } from '../types';
+import type { TiktokShopeeMap } from '../types.ts';
 
 interface ExportModalProps {
     products: TiktokShopeeMap[];
@@ -10,7 +11,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ products, onClose }) => {
     const [copied, setCopied] = useState(false);
 
     const generateFileContent = () => {
-        return `import type { TiktokShopeeMap } from './types';\n\nexport const initialLinkDatabase: TiktokShopeeMap[] = ${JSON.stringify(products, null, 2)};`;
+        return `import type { TiktokShopeeMap } from './types.ts';\n\nexport const initialLinkDatabase: TiktokShopeeMap[] = ${JSON.stringify(products, null, 2)};`;
     };
 
     const handleCopy = () => {
@@ -40,7 +41,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ products, onClose }) => {
                 <p className="text-gray-400 mb-6 text-center">Copy this content and replace the content of your <code className="bg-gray-700 p-1 rounded">data.ts</code> file.</p>
                 
                 <div className="relative">
-                    <pre className="bg-gray-900 text-white p-4 rounded-md overflow-x-auto max-h-80">
+                    <pre className="bg-gray-900 text-white p-4 rounded-md overflow-x-auto max-h-80 text-xs sm:text-sm">
                         <code>
                             {generateFileContent()}
                         </code>

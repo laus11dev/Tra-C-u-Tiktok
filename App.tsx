@@ -1,55 +1,18 @@
-import React, { useState, useCallback, useEffect } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import LinkInput from './components/LinkInput';
 import ResultDisplay from './components/ResultDisplay';
-import PasswordModal from './components/PasswordModal';
-import AdminView from './components/AdminView';
-import ProductModal from './components/AddProductModal';
-import ChangePasswordModal from './components/ChangePasswordModal';
-import ExportModal from './components/ExportModal';
-import type { TiktokShopeeMap, SearchResult } from './types';
+import type { SearchResult } from './types';
 import { initialLinkDatabase } from './data';
 
-const PASSWORD_KEY = 'admin_password_hash';
-const DEFAULT_PASSWORD = 'Vinh3141$$';
-
 const App: React.FC = () => {
-  // State is now initialized directly from the imported data file.
-  const [products, setProducts] = useState<TiktokShopeeMap[]>(initialLinkDatabase);
+  const products = initialLinkDatabase;
   const [isLoading, setIsLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<SearchResult>(null);
   const [appError, setAppError] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [editingProductIndex, setEditingProductIndex] = useState<number | null>(null);
-
-  const hashPassword = async (password: string): Promise<string> => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
-  useEffect(() => {
-    const initPassword = async () => {
-      if (!localStorage.getItem(PASSWORD_KEY)) {
-        const defaultHash = await hashPassword(DEFAULT_PASSWORD);
-        localStorage.setItem(PASSWORD_KEY, defaultHash);
-      }
-    };
-    initPassword();
-  }, []);
 
   const handleSearch = useCallback((link: string) => {
-    if (link === 'admin@gocnhonhamunn') {
-      setShowPasswordModal(true);
-      return;
-    }
-
     setIsLoading(true);
     setSearchResult(null);
     setAppError(null);
@@ -88,100 +51,8 @@ const App: React.FC = () => {
     }, 500);
   }, [products]);
 
-  const handlePasswordSubmit = async (password: string) => {
-    const storedHash = localStorage.getItem(PASSWORD_KEY);
-    const inputHash = await hashPassword(password);
-    if (inputHash === storedHash) {
-      setIsAdmin(true);
-      setShowPasswordModal(false);
-      setInputValue('');
-    } else {
-      alert('Mật khẩu không đúng!');
-    }
-  };
-  
-  const handleChangePassword = async (oldPass: string, newPass: string): Promise<boolean> => {
-    const storedHash = localStorage.getItem(PASSWORD_KEY);
-    const oldPassHash = await hashPassword(oldPass);
-    if (oldPassHash !== storedHash) {
-        alert('Mật khẩu cũ không đúng!');
-        return false;
-    }
-    const newPassHash = await hashPassword(newPass);
-    localStorage.setItem(PASSWORD_KEY, newPassHash);
-    alert('Đổi mật khẩu thành công!');
-    setShowChangePasswordModal(false);
-    return true;
-  };
-
-  const handleLogout = () => {
-      setIsAdmin(false);
-  }
-
-  const handleSaveProduct = (product: TiktokShopeeMap) => {
-    if (editingProductIndex !== null) {
-      // Edit
-      setProducts(prev => prev.map((p, i) => i === editingProductIndex ? product : p));
-    } else {
-      // Add
-      setProducts(prev => [...prev, product]);
-    }
-    setShowProductModal(false);
-    setEditingProductIndex(null);
-  };
-
-  const handleDeleteProduct = (index: number) => {
-    if (window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
-        setProducts(prev => prev.filter((_, i) => i !== index));
-    }
-  };
-
-  if (isAdmin) {
-    return (
-        <>
-            <AdminView 
-                products={products} 
-                onLogout={handleLogout} 
-                onAddProductClick={() => { setEditingProductIndex(null); setShowProductModal(true); }}
-                onEditProductClick={(index) => { setEditingProductIndex(index); setShowProductModal(true); }}
-                onDeleteProductClick={handleDeleteProduct}
-                onChangePasswordClick={() => setShowChangePasswordModal(true)}
-                onExportClick={() => setShowExportModal(true)}
-            />
-            {showProductModal && (
-                <ProductModal 
-                    onClose={() => { setShowProductModal(false); setEditingProductIndex(null); }}
-                    onSave={handleSaveProduct}
-                    productToEdit={editingProductIndex !== null ? products[editingProductIndex] : null}
-                />
-            )}
-            {showChangePasswordModal && (
-                <ChangePasswordModal
-                    onClose={() => setShowChangePasswordModal(false)}
-                    onSubmit={handleChangePassword}
-                />
-            )}
-            {showExportModal && (
-                <ExportModal
-                    products={products}
-                    onClose={() => setShowExportModal(false)}
-                />
-            )}
-        </>
-    );
-  }
-  
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      {showPasswordModal && (
-        <PasswordModal 
-          onSubmit={handlePasswordSubmit} 
-          onClose={() => {
-            setShowPasswordModal(false);
-            setInputValue('');
-          }} 
-        />
-      )}
       <header className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
           Xin chào Nàng Xinh đã ghé thăm
