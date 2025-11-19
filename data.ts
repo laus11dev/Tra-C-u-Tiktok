@@ -1,8 +1,5 @@
-
 import type { TiktokShopeeMap } from './types';
 
-// This data serves as the initial state.
-// FIX: Removed the 'tiktokId' property from each object as it is not defined in the 'TiktokShopeeMap' interface and is not used in the application.
 export const initialLinkDatabase: TiktokShopeeMap[] = [
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/photo/7571313097198030087', shopeeCode: 'CHL-EHH-MAZ', shopeeLink: 'https://s.shopee.vn/6fZYfSAMDp' },
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/photo/7571522585914068232', shopeeCode: 'CDG-CHX-SLD', shopeeLink: 'https://s.shopee.vn/9zq0db6L2r' },
@@ -21,4 +18,6 @@ export const initialLinkDatabase: TiktokShopeeMap[] = [
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7573389177232919815', shopeeCode: 'CCG-FGR-CUP', shopeeLink: 'https://s.shopee.vn/10vBvI3oPC' },
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7572836732568096018', shopeeCode: 'APT-TAX-EBW', shopeeLink: 'https://s.shopee.vn/7plW3rqJnJ' },
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7573426297378770184', shopeeCode: 'CKV-UMW-RSW', shopeeLink: 'https://s.shopee.vn/9Utk2ixxJ5' },
+  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7574294316349181191', shopeeCode: 'CMP-FBU-KQX', shopeeLink: 'https://s.shopee.vn/9pWbteiyR7' },
+  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7574117905919528210', shopeeCode: 'BHC-XNA-YCR', shopeeLink: 'https://s.shopee.vn/9KaLIjksS2' },
 ];
