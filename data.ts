@@ -24,4 +24,5 @@ export const initialLinkDatabase: TiktokShopeeMap[] = [
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7574620193331154184', products: [{ productName: 'Đầm Lệch Vai', shopeeCode: 'AWJ-LNG-NLK', shopeeLink: 'https://s.shopee.vn/6fZapfSVRl' }] },
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7574664428310842631', products: [{ productName: 'Đầm Lệch Vai', shopeeCode: 'ADY-UTY-CSH', shopeeLink: 'https://s.shopee.vn/8V1FrLVEbd' }] },
   { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7574714916100246791', products: [{ productName: 'Set Đồ Tiểu Thư', shopeeCode: 'BEG-UMR-FXX', shopeeLink: 'https://s.shopee.vn/6KwlSRlTIn' }] },
+  { tiktokLink: 'https://www.tiktok.com/@gocnhonhamunn/video/7574749942133099784', products: [{ productName: 'Áo thun tay lỡ nhún eo', shopeeCode: 'ASP-WCK-CLH', shopeeLink: 'https://s.shopee.vn/6pt2AONMsH' }] },
 ];
